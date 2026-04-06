@@ -21,5 +21,5 @@ class FeedSchedule(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     __table_args__ = (
-        CheckConstraint("duration_seconds BETWEEN 1 AND 60", name="check_duration_range")
+        CheckConstraint("duration_seconds BETWEEN 1 AND 60", name="check_duration_range"),
     )

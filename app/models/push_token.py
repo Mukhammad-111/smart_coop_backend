@@ -19,7 +19,7 @@ class PushToken(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE")
                                          , nullable=False)
-    token: Mapped[str] = mapped_column(Text, nullable=False)
+    token: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     platform: Mapped[PushPlatform] = mapped_column(
         Enum(PushPlatform, native_enum=False, length=10), nullable=False)
     is_active: Mapped[bool] = mapped_column(
