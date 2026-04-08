@@ -15,6 +15,7 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true", nullable=False)
+    api_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     notif_alarm_temp_high: Mapped[bool] = mapped_column(Boolean,
         default=True, server_default="true", nullable=False,
         comment="Получать push при высокой/критической температуре")

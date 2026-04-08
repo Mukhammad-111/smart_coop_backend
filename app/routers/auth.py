@@ -6,9 +6,10 @@ from app.dependencies.dependencies import get_db, get_current_user
 from app.models import User
 from app.schemas.auth import (RegisterRequest, UserResponse, TokenResponse, LoginRequest,
                               RefreshResponse, RefreshRequest, MessageResponse, LogoutRequest,
-                              PushTokenRequest, PushTokenDeleteRequest)
+                              PushTokenRequest, PushTokenDeleteRequest, UserMeResponse)
 from app.services.auth_service import (register_service, login_service, refresh_service,
-                                       logout_service, me_service, push_token_service, push_token_delete_service)
+                                       logout_service, me_service, push_token_service,
+                                       push_token_delete_service)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -42,7 +43,7 @@ async def logout(data: LogoutRequest,
     return await logout_service(current_user, db, data.token)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserMeResponse)
 async def me(current_user: User = Depends(get_current_user),
              db: AsyncSession = Depends(get_db)):
     return await me_service(current_user, db)

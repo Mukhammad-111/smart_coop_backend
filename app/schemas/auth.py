@@ -12,6 +12,17 @@ class RegisterRequest(BaseModel):
     password: str = Field(max_length=255, min_length=8)
 
 
+class UserMeResponse(BaseModel):
+    id: int
+    email: EmailStr
+    first_name: str
+    last_name: str
+    api_key: str
+    created_at: datetime.datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserResponse(BaseModel):
     id: int
     email: EmailStr

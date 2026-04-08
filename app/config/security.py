@@ -1,21 +1,21 @@
 from datetime import timedelta, datetime, timezone
+import secrets
 
-from fastapi import Header, HTTPException
+from watchfiles import awatch
 
 from app.config.settings import settings
 from passlib.context import CryptContext
 from jose import jwt
 
+from app.repositories.user import UserRepository
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-API_KEY = settings.X_API_KEY
 
 
-async def verify_api_key(x_api: str = Header(...)):
-    if x_api != API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
+def generate_api_key():
+    return secrets.token_hex(32)
 
 
 pwd_contex = CryptContext(schemes=["bcrypt"], deprecated="auto")

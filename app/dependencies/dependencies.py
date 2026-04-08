@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Header
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,4 +33,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    return user
+
+async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key"),
+                         db: AsyncSession = Depends(get_db)):
+    user = await UserRepository.get_by_api_key(x_api_key, db)
+
+    if not user or not user.api_key:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
     return user

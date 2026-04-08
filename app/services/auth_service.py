@@ -5,12 +5,13 @@ from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.security import hash_password, verify_password, create_access_token, create_refresh_token, \
-    ACCESS_TOKEN_EXPIRE_MINUTES, decode_access_token
+    ACCESS_TOKEN_EXPIRE_MINUTES, decode_access_token, generate_api_key
 from app.models.user import User
 from app.repositories.push_token import PushTokenRepository
 from app.repositories.refresh_token import RefreshTokenRepository
 from app.repositories.user import UserRepository
-from app.schemas.auth import RegisterRequest, LoginRequest, RefreshRequest, PushTokenRequest
+from app.schemas.auth import RegisterRequest, LoginRequest, RefreshRequest, PushTokenRequest, TokenResponse, \
+    RefreshResponse, MessageResponse
 
 
 async def register_service(data: RegisterRequest, db: AsyncSession):
@@ -19,11 +20,14 @@ async def register_service(data: RegisterRequest, db: AsyncSession):
         raise HTTPException(status_code=400, detail="Email already registered")
     password_hash = hash_password(data.password)
 
+    api_key = generate_api_key()
+
     new_user = User(
         email=data.email,
         first_name=data.first_name,
         last_name=data.last_name,
-        hashed_password=password_hash
+        hashed_password=password_hash,
+        api_key=api_key
     )
     created_user = await UserRepository.create(new_user, db)
     await db.commit()
@@ -43,10 +47,12 @@ async def login_service(data: LoginRequest, db: AsyncSession):
     refresh_db = await RefreshTokenRepository.create_token(user.id, refresh_token, db)
     await db.commit()
     await db.refresh(refresh_db)
-    return {"access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60}
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
 
 
 async def refresh_service(token_data: RefreshRequest, db: AsyncSession):
@@ -64,9 +70,11 @@ async def refresh_service(token_data: RefreshRequest, db: AsyncSession):
 
     user_id = str(payload["sub"])
     access_token = create_access_token({"sub": user_id})
-    return {"access_token": access_token,
-            "token_type": "bearer",
-            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60}
+    return RefreshResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
 
 
 async def logout_service(current_user: User,
@@ -81,7 +89,9 @@ async def logout_service(current_user: User,
             db.add(token_obj)
 
     await db.commit()
-    return {"message": "Logout successful"}
+    return MessageResponse(
+        message="Logout successful"
+    )
 
 async def me_service(current_user: User, db: AsyncSession):
     user = await UserRepository.get_by_id(current_user.id, db)
@@ -97,7 +107,9 @@ async def push_token_service(current_user: User,
         token.is_active = True
         token.user_id = current_user.id
         await db.commit()
-        return {"message": "Push token registered"}
+        return MessageResponse(
+            message="Push token registered"
+        )
 
     created_token = await PushTokenRepository.create_token(
         user_id=current_user.id,
@@ -106,7 +118,9 @@ async def push_token_service(current_user: User,
         db=db)
     await db.commit()
     await db.refresh(created_token)
-    return {"message": "Push token registered"}
+    return MessageResponse(
+        message="Push token registered"
+    )
 
 
 async def push_token_delete_service(current_user: User,
@@ -118,4 +132,6 @@ async def push_token_delete_service(current_user: User,
     if push_token:
         push_token.is_active = False
         await db.commit()
-    return {"message": "Push token removed"}
+    return MessageResponse(
+        message="Push token removed"
+    )

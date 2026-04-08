@@ -10,7 +10,6 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     ALGORITHM: str
-    X_API_KEY: str
 
     @property
     def sqlalchemy_url(self):
