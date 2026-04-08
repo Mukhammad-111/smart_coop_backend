@@ -11,3 +11,13 @@ class DeviceStateRepository(BaseRepository):
     @classmethod
     async def get_first(cls, db: AsyncSession):
         return await db.scalar(select(cls.model).limit(1))
+
+
+    @classmethod
+    async def get_last(cls, db: AsyncSession):
+        result = await db.execute(
+            select(cls.model).
+            order_by(cls.model.recorded_at.desc()).
+            limit(1))
+
+        return result.scalars().first()

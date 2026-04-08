@@ -10,5 +10,5 @@ class ThresholdRepository(BaseRepository):
 
     @classmethod
     async def get_active(cls, db: AsyncSession):
-        result = await db.execute(select(cls.model).limit(1))
+        result = await db.execute(select(cls.model).where(cls.model.id == 1))
         return result.scalar_one_or_none()
