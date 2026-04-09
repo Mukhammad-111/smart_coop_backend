@@ -1,7 +1,10 @@
+from fastapi import HTTPException
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models import Threshold
 from app.repositories.thresholds import ThresholdRepository
-from app.schemas.thresholds import ThresholdsResponse
+from app.schemas.thresholds import ThresholdsResponse, ThresholdsUpdateRequest
 
 
 async def get_current_thresholds(db: AsyncSession) -> ThresholdsResponse:
@@ -25,3 +28,28 @@ async def get_current_thresholds(db: AsyncSession) -> ThresholdsResponse:
             lux_light_off=350
         )
     return ThresholdsResponse.model_validate(thresholds)
+
+
+async def thresholds_update_service(data: ThresholdsUpdateRequest,
+                                    db: AsyncSession):
+    thresholds = await ThresholdRepository.get_active(db)
+    if thresholds is None:
+        thresholds = Threshold()
+        await ThresholdRepository.create(thresholds, db)
+
+    full_data = {
+        field: getattr(data, field) if getattr(data, field) is not None else getattr(thresholds, field)
+        for field in ThresholdsResponse.model_fields
+    }
+
+    try:
+        validated = ThresholdsResponse(**full_data)
+    except ValidationError as e:
+        raise HTTPException(status_code=422,
+                            detail=[error["msg"] for error in e.errors()])
+
+    updated_thresholds = await ThresholdRepository.update(thresholds, data, db)
+    await db.commit()
+    await db.refresh(updated_thresholds)
+
+    return ThresholdsResponse.model_validate(updated_thresholds)
