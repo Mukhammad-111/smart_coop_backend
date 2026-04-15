@@ -56,11 +56,11 @@ async def sensor_data_service(data: SensorDataRequest, db: AsyncSession, user_id
 async def sensor_current_service(user_id: int, db: AsyncSession):
     reading = await SensorRepository.get_last_reading(db)
     if reading is None:
-        raise HTTPException(status_code=404, detail="No sensor data")
+        return None
 
     threshold = await ThresholdRepository.get_active(db)
     if threshold is None:
-        raise HTTPException(status_code=404, detail="Threshold not configured")
+        return None
 
     return CurrentSensorResponse(
         temperature=reading.temperature,

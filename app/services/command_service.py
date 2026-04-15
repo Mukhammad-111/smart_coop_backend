@@ -47,8 +47,6 @@ async def command_pending_get_service(db: AsyncSession):
 
     thresholds = await get_current_thresholds(db)
 
-    schedule = await FeedScheduleRepository.get_active(db)
-
     return PendingCommandsResponse(
         commands=commands,
         thresholds=thresholds,

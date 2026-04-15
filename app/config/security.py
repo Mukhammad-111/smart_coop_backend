@@ -1,13 +1,9 @@
 from datetime import timedelta, datetime, timezone
 import secrets
-
-from watchfiles import awatch
-
 from app.config.settings import settings
 from passlib.context import CryptContext
 from jose import jwt
 
-from app.repositories.user import UserRepository
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM

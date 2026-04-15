@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Header
+from fastapi import Depends, HTTPException, Header, Query
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +15,8 @@ async def get_db():
 
 
 security = HTTPBearer()
+
+security_optional = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -33,6 +35,34 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    return user
+
+
+async def get_current_user_optional(
+        token: str | None = Query(None),
+        credentials: HTTPAuthorizationCredentials | None = Depends(security_optional),
+        db: AsyncSession = Depends(get_db)
+):
+    jwt_token = None
+
+    if token:
+        jwt_token = token
+    elif credentials:
+        jwt_token = credentials.credentials
+
+    if not jwt_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        payload = decode_access_token(jwt_token)
+        user_id = int(payload.get("sub"))
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await UserRepository.get_by_id(user_id, db)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     return user
 
 async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key"),
