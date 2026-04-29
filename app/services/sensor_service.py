@@ -1,9 +1,7 @@
 from datetime import datetime, timezone
-
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import SensorReading, DeviceState
+from app.models import SensorReading, DeviceState, Threshold
 from app.models.device_state import DoorStatus
 from app.repositories.device_state import DeviceStateRepository
 from app.repositories.sensor_reading import SensorRepository
@@ -24,8 +22,23 @@ async def sensor_data_service(data: SensorDataRequest, db: AsyncSession, user_id
 
     threshold = await ThresholdRepository.get_active(db)
     if threshold is None:
-        raise HTTPException(status_code=500, detail="Thresholds not configured")
-
+        threshold = Threshold(
+        t_comfort_min=18.0,
+        t_comfort_max=24.0,
+        t_low_on=10.0,
+        t_low_off=12.0,
+        t_high_on=30.0,
+        t_high_off=28.0,
+        t_critical_low=3.0,
+        t_critical_high=35.0,
+        h_normal_max=70.0,
+        h_normal_min=60.0,
+        h_critical=85.0,
+        lux_day_on=200,
+        lux_day_off= 50,
+        lux_light_on=300,
+        lux_light_off=350,
+        )
 
     user = await UserRepository.get_by_id(user_id, db)
 
@@ -53,7 +66,7 @@ async def sensor_data_service(data: SensorDataRequest, db: AsyncSession, user_id
     )
 
 
-async def sensor_current_service(user_id: int, db: AsyncSession):
+async def sensor_current_service(db: AsyncSession):
     reading = await SensorRepository.get_last_reading(db)
     if reading is None:
         return None

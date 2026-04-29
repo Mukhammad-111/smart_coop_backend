@@ -24,5 +24,4 @@ async def device_state_get_service(db: AsyncSession):
     last_device_state = await DeviceStateRepository.get_last(db)
     if last_device_state is None:
         raise HTTPException(status_code=404, detail="Not found")
-
     return last_device_state

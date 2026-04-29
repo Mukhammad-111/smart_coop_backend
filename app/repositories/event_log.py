@@ -2,6 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import EventLog
+from app.models.event_log import Severity
 from app.repositories.base import BaseRepository
 from datetime import datetime
 
@@ -29,7 +30,7 @@ class EventLogRepository(BaseRepository):
             stmt = stmt.where(cls.model.severity == severity.value)
 
         if event_type:
-            stmt = stmt.where(cls.model.event_type == event_type)
+            stmt = stmt.where(cls.model.event_type == event_type.value)
 
         stmt = stmt.order_by(cls.model.occurred_at.desc()).limit(limit).offset(offset)
 
@@ -52,7 +53,7 @@ class EventLogRepository(BaseRepository):
             stmt = stmt.where(cls.model.severity == severity.value)
 
         if event_type:
-            stmt = stmt.where(cls.model.event_type == event_type)
+            stmt = stmt.where(cls.model.event_type == event_type.value)
 
         return await db.scalar(stmt)
 
@@ -68,7 +69,7 @@ class EventLogRepository(BaseRepository):
 
         stmt = stmt.where(cls.model.occurred_at >= period_start)
 
-        stmt = stmt.where(cls.model.severity.in_(["warning", "critical"]))
+        stmt = stmt.where(cls.model.severity.in_([Severity.warning.value, Severity.critical.value]))
 
         stmt = stmt.order_by(cls.model.occurred_at.desc()).limit(limit).offset(offset)
 
@@ -85,6 +86,6 @@ class EventLogRepository(BaseRepository):
         stmt = select(func.count()).where(
             cls.model.occurred_at >= period_start
         )
-        stmt = stmt.where(cls.model.severity.in_(["warning", "critical"]))
+        stmt = stmt.where(cls.model.severity.in_([Severity.warning.value, Severity.critical.value]))
 
         return await db.scalar(stmt)

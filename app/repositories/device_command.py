@@ -13,6 +13,5 @@ class DeviceCommandRepository(BaseRepository):
         result = await db.execute(
             select(cls.model).
             where(cls.model.is_executed.is_(False)).
-            order_by(cls.model.created_at.asc()).
-            limit(50))
+            order_by(cls.model.created_at.asc()))
         return result.scalars().all()

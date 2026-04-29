@@ -49,13 +49,13 @@ async def me(current_user: User = Depends(get_current_user),
     return await me_service(current_user, db)
 
 
-@router.post("push-token", response_model=MessageResponse)
+@router.post("/push-token", response_model=MessageResponse)
 async def push_token(data: PushTokenRequest,
                      current_user: User = Depends(get_current_user),
                      db: AsyncSession = Depends(get_db)):
     return await push_token_service(current_user, data, db)
 
-@router.delete("push-token", response_model=MessageResponse)
+@router.delete("/push-token", response_model=MessageResponse)
 async def push_token_delete(data: PushTokenDeleteRequest,
                             current_user: User = Depends(get_current_user),
                             db: AsyncSession = Depends(get_db)):

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.device_state import DeviceStateRepository
 from app.repositories.event_log import EventLogRepository
 from app.repositories.system_mode import SystemModeRepository
-from app.schemas.system import SystemHealthConnResponse, SystemStatusResponse
+from app.schemas.system import SystemHealthConnResponse, SystemStatusResponse, CameraItems
 from app.services.camera_service import camera_status_service
 from app.services.sensor_service import sensor_current_service
 
@@ -31,11 +31,11 @@ async def system_health_service(db: AsyncSession):
 
 
 async def system_status_service(user_id: int, db: AsyncSession):
-    last_sensor = await sensor_current_service(user_id, db)
+    last_sensor = await sensor_current_service(db)
     last_device = await DeviceStateRepository.get_last(db)
     active_mode = await SystemModeRepository.get_last(db)
     recent_events = await EventLogRepository.filter_for_history(
-        period_start=datetime.utcnow() - timedelta(days=1), limit=5, offset=0, db=db)
+        period_start=datetime.now(timezone.utc) - timedelta(days=1), limit=5, offset=0, db=db)
     if last_sensor:
         diff = datetime.now(timezone.utc) - last_sensor.recorded_at
         is_device_online = diff.total_seconds() < 30
@@ -45,10 +45,10 @@ async def system_status_service(user_id: int, db: AsyncSession):
         device_last_seen = None
 
     camera_status_data = await camera_status_service()
-    camera_status = {
-        "is_online": camera_status_data.is_online,
-        "last_frame_age_seconds": camera_status_data.last_frame_age_seconds
-    }
+    camera_status = CameraItems(
+        is_online=camera_status_data.is_online,
+        last_frame_age_seconds=camera_status_data.last_frame_age_seconds
+    )
     return SystemStatusResponse(
         last_sensor=last_sensor,
         last_device=last_device,

@@ -15,7 +15,7 @@ router = APIRouter(prefix="/events", tags=["Events"])
 async def get_events(
         period: PeriodValue = Query(default=PeriodValue.h24),
         severity: SeverityFilter = Query(default=SeverityFilter.all),
-        event_type: EventType = Query(default=None),
+        event_type: EventType | None = Query(default=None),
         limit: int = Query(default=100, ge=1, le=500),
         offset: int = Query(default=0, ge=0),
         user: User = Depends(get_current_user),

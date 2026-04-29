@@ -43,27 +43,27 @@ async def get_current_user_optional(
         credentials: HTTPAuthorizationCredentials | None = Depends(security_optional),
         db: AsyncSession = Depends(get_db)
 ):
-    jwt_token = None
-
     if token:
-        jwt_token = token
-    elif credentials:
+        user = await UserRepository.get_by_api_key(token, db)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid API Key")
+        return user
+
+    if credentials:
         jwt_token = credentials.credentials
+        try:
+            payload = decode_access_token(jwt_token)
+            user_id = int(payload.get("sub"))
+        except Exception:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
-    if not jwt_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        user = await UserRepository.get_by_id(user_id, db)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
 
-    try:
-        payload = decode_access_token(jwt_token)
-        user_id = int(payload.get("sub"))
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    raise HTTPException(status_code=401, detail="Not authenticated")
 
-    user = await UserRepository.get_by_id(user_id, db)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
 
 async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key"),
                          db: AsyncSession = Depends(get_db)):

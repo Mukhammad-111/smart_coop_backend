@@ -17,7 +17,7 @@ async def sensor_data(data: SensorDataRequest,
     return await sensor_data_service(data, db, user.id)
 
 
-@router.get("/current", response_model=CurrentSensorResponse)
+@router.get("/current", response_model=CurrentSensorResponse | None)
 async def sensor_current(user: User = Depends(get_current_user),
                          db: AsyncSession = Depends(get_db)):
-    return await sensor_current_service(user.id, db)
+    return await sensor_current_service(db)

@@ -32,6 +32,6 @@ class HistoryEventItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class NotificationHistoryEvent(BaseModel):
+class NotificationHistoryResponse(BaseModel):
     events: list[HistoryEventItem]
     count: int

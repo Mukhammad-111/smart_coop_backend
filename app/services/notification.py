@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from app.repositories.event_log import EventLogRepository
 from app.repositories.user import UserRepository
 from app.schemas.notification import NotificationSettingsResponse, NotificationSettingsUpdateRequest,  \
-    NotificationHistoryEvent
+    NotificationHistoryResponse
 
 
 async def get_notification_settings_service(user_id: int, db: AsyncSession):
@@ -59,4 +59,4 @@ async def get_notification_history_service(
 
     count = await EventLogRepository.count_for_history(period_start, db)
 
-    return NotificationHistoryEvent(events=data, count=count)
+    return NotificationHistoryResponse(events=data, count=count)

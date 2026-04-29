@@ -9,13 +9,6 @@ from app.services.mode_service import mode_current_create_service, mode_current_
 router = APIRouter(prefix="/mode", tags=["Mode"])
 
 
-@router.post("/current", response_model=ModeCurrentResponse)
-async def mode_current_create(data: ModeCurrentRequest,
-                              _: User = Depends(verify_api_key),
-                              db: AsyncSession = Depends(get_db)):
-    return await mode_current_create_service(data, db)
-
-
 @router.get("/current", response_model=ModeResponse)
 async def mode_current_get(user: User = Depends(get_current_user),
                            db: AsyncSession = Depends(get_db)):
@@ -27,3 +20,10 @@ async def mode_set(data: SetModeRequest,
                    user: User = Depends(get_current_user),
                    db: AsyncSession = Depends(get_db)):
     return await mode_set_service(data, db)
+
+
+@router.post("/current", response_model=ModeCurrentResponse)
+async def mode_current_create(data: ModeCurrentRequest,
+                              _: User = Depends(verify_api_key),
+                              db: AsyncSession = Depends(get_db)):
+    return await mode_current_create_service(data, db)

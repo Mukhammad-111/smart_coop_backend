@@ -2,6 +2,8 @@ import enum
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
+from app.schemas.mode import ModeResponse
+
 
 class PeriodValue(enum.Enum):
     h24 = "24h"
@@ -21,6 +23,8 @@ class SensorDataItem(BaseModel):
     humidity: float | None
     light_level: int | None
     recorded_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SensorHistoryResponse(BaseModel):
@@ -42,5 +46,5 @@ class DeviceStateItem(BaseModel):
 
 
 class HistoryDataResponse(BaseModel):
-    data: list[DeviceStateItem]
+    data: list[ModeResponse]
     count: int

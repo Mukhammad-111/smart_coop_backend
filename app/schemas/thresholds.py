@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
 class ThresholdsResponse(BaseModel):
@@ -17,6 +17,8 @@ class ThresholdsResponse(BaseModel):
     lux_day_off: int
     lux_light_on: int
     lux_light_off: int
+
+    model_config = ConfigDict(from_attributes=True)
 
     @model_validator(mode="after")
     def validate_thresholds(self):
